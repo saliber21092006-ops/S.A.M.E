@@ -5,6 +5,9 @@
  *   { messages: [{ role: 'user' | 'assistant', content: string }, ...] }
  * and responds with the reply as a plain-text stream. See src/routes/api/chat/+server.js.
  */
+
+import { _ApiFetcher } from "../../routes/chat/+page";
+
 export class AIChatStore {
 	/** @type {{ id: string, role: 'user' | 'assistant', content: string }[]} */
 	messages = $state([]);
@@ -17,12 +20,14 @@ export class AIChatStore {
 	#controller = null;
 
 	/** @param {{ endpoint?: string }} [options] */
-	constructor({ endpoint = '/api/chat' } = {}) {
+	constructor({ endpoint = 'http://127.0.0.1:8000/api/chat/stream/' } = {}) {
 		this.#endpoint = endpoint;
+
+		// this.loadDBMessages()
 	}
 
 	async loadDBMessages(){
-		const res = await fetch('http://127.0.0.1:8000/api/chat/messages/', {
+		const res = await _ApiFetcher('http://127.0.0.1:8000/api/chat/messages/', {
 			method: 'GET',
 			headers: {
 				'content-type': 'application/json',
@@ -31,12 +36,16 @@ export class AIChatStore {
 		})
 
 		if(!res.ok){
-			let data = await res.json()
-			throw Error(data.message)
+			let data = await res.json().catch(()=> {})
+			throw new Error("Failed to load messages")
 		}
 		
 		let data = await res.json()
-		this.messages = data
+		this.messages = data //.map((/** @type {{ role: any; content: any; }} */ msg) => ({
+		// 	role: msg.role,
+		// 	content: msg.content
+		// }))
+		console.log(this.messages)
 	}
 
 	/** @param {string} text */
@@ -79,7 +88,7 @@ export class AIChatStore {
 		this.#controller = new AbortController();
 
 		try {
-			const res = await fetch(this.#endpoint, {
+			const res = await _ApiFetcher(this.#endpoint, {
 				method: 'POST',
 				headers: { 
 					'content-type': 'application/json',

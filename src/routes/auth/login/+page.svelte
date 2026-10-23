@@ -54,22 +54,23 @@
         loading = true
 
         try{
-            const res = await fetch("http://127.0.0.1:8000/api/token/", {
+            const res = await fetch("http://127.0.0.1:8000/auth/login/", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
                 body: JSON.stringify({'username':cleanUsername, 'password':cleanPassword})
             })
 
             if(res.ok){
                 const data = await res.json()
-                successMessage = "Login successful!"
-                _storage(data.access, data.refresh)
-                return window.location.href="/chat"
+                successMessage = data.detail
+                // _storage(data.access, data.refresh)
+                window.location.href="/chat"
             }
 
             else if(!res.ok){
                 const data = await res.json()
-                errorMsg(`${data.detail || 'Invalid Credentials'}`)
+                errorMsg(`${data.detail || 'Invalid Credentials, Please Try again.'}`)
             }
 
         }
