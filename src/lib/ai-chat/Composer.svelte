@@ -1,6 +1,6 @@
 <script>
 	import { onMount, tick } from 'svelte';
-	import { AIChatStore } from './ai-chat.svelte';
+	// import { AIChatStore } from './ai-chat.svelte';
 
 	let { onsend, onstop, streaming = false, placeholder = 'Message the assistant…' } = $props();
 
@@ -37,8 +37,9 @@
 
 	onMount(() => {
 		
-		let loadMsg = new AIChatStore()
-		loadMsg.loadDBMessages()
+		// let loadMsg = new AIChatStore()
+		// loadMsg.loadDBMessages()
+		// console.log("COMPOSER")
 
 		if (window.matchMedia('(hover: hover)').matches) field.focus();
 	});

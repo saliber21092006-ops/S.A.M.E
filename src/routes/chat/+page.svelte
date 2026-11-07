@@ -1,43 +1,38 @@
 <script>
 	import { onMount } from 'svelte'
 	import { _ApiFetcher } from './+page';
-	// import { AIChat, AIChatStore } from '$lib/ai-chat';
     import { AIChat, AIChatStore } from '#lib/ai-chat/index.js';
+	import ChatShell from '#lib/ai-chat/ChatShell.svelte';
+    import { browser } from '$app/env';
+    import { goto } from '$app/navigation';
+    import { chatStore } from '#lib/ai-chat/ai-chat.svelte.js';
 
-	let username = $state("")
 	// const store = new AIChatStore({ endpoint: 'http://127.0.0.1:8000/api/chat/stream/' });
 
-	onMount(async ()=>{
-		// fetches the user's info onloading the page
-		// if(!sessionStorage.getItem('access')){
-		// 	window.location.href="/auth/login"
-		// 	return
-		// }
+	// CHANGED: the shared store, not a page-local one. The chat created here keeps streaming
+	// when the page moves to /chat/<id>, because both pages use the same store.
+	const store = chatStore;
 
-		const res = await _ApiFetcher("http://127.0.0.1:8000/auth/get_user_info/", {
-			method: "GET",
-			headers: {
-				'Content-type': 'application/json',
-				'Authorization': `Bearer ${sessionStorage.getItem("access")}`
-			}
-		})
+	if (browser) {
+		// "/chat" is always a blank new chat (also when arriving with the Back button)
+		store.clear();
+		store.activeChatId = null;
+		// once the first message has created the chat, show it at /chat/<id> without a reload
+		store.onChatCreated = (id) => goto(`/chat/${id}`, { replaceState: true, keepFocus: true, noScroll: true });
+	}
 
-		if(!res.ok){
-			let data = await res.json()
-			throw Error(data.error)
-		}
+	let { data } = $props()
 
-		let data = await res.json()
-		username = data.username
-
-		// await store.loadDBMessages()
-	})
-
-	const store = new AIChatStore({ endpoint: 'http://127.0.0.1:8000/api/chat/stream/' });
 </script>
 
 <svelte:head>
-	<title>Assistant</title>   
+	<title>S.A.M.E - Assistant</title>
 </svelte:head>
 
-<AIChat {store} title="S.A.M.E" greeting="Hello {username}, how can I help you today?" />
+<ChatShell {store} user={data.user}>
+	<AIChat {store} title="" greeting="Welcome, {data.user.username.toLowerCase()}. How can i help you today?" />
+</ChatShell>
+
+<!-- <AIChat {store} title="S.A.M.E" greeting="Hello {username}, how can I help you today?" /> -->
+<!-- <AIChat title="S.A.M.E" greeting="Welcome, {data.user.username.toUpperCase()}. How can i help you today?" /> -->
+

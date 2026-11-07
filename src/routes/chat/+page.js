@@ -12,12 +12,13 @@ let refresh = sessionStorage.getItem('refresh')
 
 // console.log(access)
 
-if(!access && !refresh){
-    // alert('You are not logged in')
-    if(typeof window !=="undefined"){
-        window.location.href="/auth/login"
-    }
-}
+// if(!access && !refresh){
+//     // alert('You are not logged in')
+//     if(typeof window !=="undefined"){
+//         window.location.href="/auth/login"
+//     }
+// }
+
 
 function handleLogout(){
     sessionStorage.removeItem('access')
@@ -55,8 +56,9 @@ export async function _ApiFetcher(url = "", options = {}){
     let makereq = await fetch(url, {
             headers: {
                 'Content-type': 'appplication/json',
-                'Authorization': `Bearer ${access_token?.value}`
+                // 'Authorization': `Bearer ${access_token?.value}`
             },
+            credentials: 'include',
             ...options
     })
 
@@ -68,8 +70,9 @@ export async function _ApiFetcher(url = "", options = {}){
                         ...options.headers,
                         headers: {
                             'Content-type': 'appplication/json',
-                            'Authorization': `Bearer ${access_token?.value}`
+                            // 'Authorization': `Bearer ${access_token?.value}`
                         },
+                        credentials: 'include',
                 })
             }
             else{

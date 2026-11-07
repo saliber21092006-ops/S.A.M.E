@@ -6,86 +6,74 @@
 <Login /> -->
 
 <script>
+    import { enhance } from "$app/forms";
     import { redirect } from "@sveltejs/kit";
-    import { onMount } from "svelte";
+
+    let { form } = $props()
 
     let username = $state("")
     let password = $state("")
 
     let loading = $state(false)
     let errorMessage = $state("")
-    let successMessage = $state("")
+    // let successMessage = $state("")
 
-    onMount(()=>{
-        console.log("What's the problem")
-    })
-
-    function _storage(access = '', refresh = ''){
-        sessionStorage.setItem('access', access)
-        sessionStorage.setItem('refresh', refresh)
-    }
-
-    function errorMsg(msg=''){
-        errorMessage = msg
-        setTimeout(() => {
-            errorMessage=""
-        }, 3000);
-    }
 
     /**
      * @param {{ preventDefault: () => void; }} e
      */
-    async function handle_login(e){
-        e.preventDefault()
+    // async function handle_login(e){
+    //     e.preventDefault()
 
-        const cleanUsername = username.trim()
-        const cleanPassword = password.trim()
+    //     const cleanUsername = username.trim()
+    //     const cleanPassword = password.trim()
 
-        if(!cleanUsername || !cleanPassword){
-            errorMsg("Please fill out both fields")
-            return
-        }
+    //     if(!cleanUsername || !cleanPassword){
+    //         errorMsg("Please fill out both fields")
+    //         return
+    //     }
 
-        if(cleanPassword.length < 8){
-            errorMsg("Password must be at least 8 characters long!")
-            return;
-        }
+    //     if(cleanPassword.length < 8){
+    //         errorMsg("Password must be at least 8 characters long!")
+    //         return;
+    //     }
 
-        loading = true
+    //     loading = true
 
-        try{
-            const res = await fetch("http://127.0.0.1:8000/auth/login/", {
-                method: "POST",
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include',
-                body: JSON.stringify({'username':cleanUsername, 'password':cleanPassword})
-            })
+    //     try{
+    //         const res = await fetch("http://127.0.0.1:8000/auth/login/", {
+    //             method: "POST",
+    //             headers: {'Content-Type': 'application/json'},
+    //             credentials: 'include',
+    //             body: JSON.stringify({'username':cleanUsername, 'password':cleanPassword})
+    //         })
 
-            if(res.ok){
-                const data = await res.json()
-                successMessage = data.detail
-                // _storage(data.access, data.refresh)
-                window.location.href="/chat"
-            }
+    //         if(res.ok){
+    //             console.log("hey")
+    //             const data = await res.json()
+    //             successMessage = data.detail
+    //             // _storage(data.access, data.refresh)
+    //             window.location.href="/chat"
+    //         }
 
-            else if(!res.ok){
-                const data = await res.json()
-                errorMsg(`${data.detail || 'Invalid Credentials, Please Try again.'}`)
-            }
+    //         else if(!res.ok){
+    //             const data = await res.json()
+    //             errorMsg(`${data.detail || 'Invalid Credentials, Please Try again.'}`)
+    //         }
 
-        }
-        catch(e){
-            errorMsg(`${e}`)
-        }
-        finally{
-            loading = false
-        }
+    //     }
+    //     catch(e){
+    //         errorMsg(`${e}`)
+    //     }
+    //     finally{
+    //         loading = false
+    //     }
 
-    }
+    // }
 </script>
 
 <svelte:head>
-   <title>Issus - Login</title>
+   <title>SAME - Login</title>
 </svelte:head>
 
 <main class="body">
@@ -93,22 +81,40 @@
 
         <div class="login_body">
             <h2>S.A.M.E - Login</h2>
+           
+            {#if form?.message}
+                {#if form.success}
+                    <p style="text-align: center;color: green;">{form.message}</p>
+                    {redirect(303,"/chat")}
+                {:else}
+                    <p style="text-align: center;color: red;">{form.message}</p>
+                {/if}
+            {/if}
+
             {#if errorMessage}
-                <p style="text-align: center;color: red;">{errorMessage}</p>
+            <p style="text-align: center;color: red;">{errorMessage}</p>
             {/if}
 
-            {#if successMessage}
-                <p style="text-align: center;color: green;">{successMessage}</p>
-            {/if}
-
-            <form onsubmit={handle_login}>
+            <form method="POST" action="?/login" use:enhance={()=>{
+                loading = true
+                return async({result, update}) =>{
+                    if(result.type === "failure" || result.type === "error"){
+                        loading = false
+                        //@ts-ignore
+                        errorMessage = result.data?.message
+                    }
+                    if(result.type === "success"){
+                        window.location.href = "/chat"
+                    }
+                }
+            }}>
                 
                 <div class="username">
-                    <input type="text" id="username" class="text-username" bind:value={username} placeholder="Enter Username...">
+                    <input type="text" id="username" name="username" class="text-username" placeholder="Enter Username...">
                 </div>
 
                 <div class="password">
-                    <input type="password" id="pwd" class="text-password" bind:value={password} placeholder="Enter Password...">
+                    <input type="password" id="pwd" name="password" class="text-password" placeholder="Enter Password...">
                 </div>
 
                 <div class="lnks" style="display: flex;justify-content: space-around;align-items: center;">

@@ -1,124 +1,69 @@
 <script>
-    import { redirect } from "@sveltejs/kit";
-    import { onMount } from "svelte";
+// @ts-nocheck
 
-    let username = $state("")
-    let email = $state("")
-    let password = $state("")
-    let confirmPassword = $state("")
+    import { enhance } from "$app/forms";
+    import { redirect } from "@sveltejs/kit";
+
+    // let { form } = $props()
 
     let loading = $state(false)
-    let errorMessage = $state("")
-    let successMessage = $state("")
+    let errorMsg = $state("")
 
-    onMount(()=>{
-        console.log("What's the problem")
-    })
-
-    function _storage(access = '', refresh = ''){
-        sessionStorage.setItem('access', access)
-        sessionStorage.setItem('refresh', refresh)
-    }
-
-    function errorMsg(msg=''){
-        errorMessage = msg
-        setTimeout(() => {
-            errorMessage=""
-        }, 3000);
-    }
-
-    /**
-     * @param {{ preventDefault: () => void; }} e
-     */
-    async function handle_login(e){
-        e.preventDefault()
-
-        const cleanUsername = username.trim()
-        const cleanEmail = email.trim()
-        const cleanPassword = password.trim()
-        const cleanConfirm = confirmPassword.trim()
-
-        if(!cleanUsername || !cleanPassword || !cleanEmail || !cleanConfirm){
-            errorMsg("Please fill out all fields")
-            return
-        }
-
-        if(cleanPassword !== cleanConfirm){
-            errorMsg("Passwords do not match! Please Try Again")
-            return
-        }
-
-        if(cleanPassword.length < 8){
-            errorMsg("Password must be at least 8 characters long!")
-            return;
-        }
-
-        loading = true
-
-        try{
-            const res = await fetch("http://127.0.0.1:8000/auth/sign_up/", {
-                method: "POST",
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    'username':cleanUsername,
-                    'email':cleanEmail,
-                    'password':cleanPassword,
-                })
-            })
-
-            const data = await res.json()
-
-            if(!res.ok){
-                errorMsg(`${data.detail || 'Invalid Credentials'}`)
-            }
-
-            successMessage = "Account Created Successfully! You will be redirected to the Login page"
-            return window.location.href = "/auth/login"
-
-        }
-        catch(e){
-            errorMsg(`${e}`)
-        }
-        finally{
-            loading = false
-        }
-
-    }
 </script>
 
 <svelte:head>
-   <title>Issus - Create Account</title>
+   <title>SAME - Create Account</title>
 </svelte:head>
 
 <main class="body">
     <div class="container">
 
-        <div class="login_body">
+        <div class="signup_body">
             <h2>S.A.M.E - Sign Up</h2>
-            {#if errorMessage}
-                <p style="text-align: center;color: red;">{errorMessage}</p>
+
+            <!-- {#if form?.message}
+                {#if form.success}
+                    <p style="text-align: center;color: green;">{form.message}</p>
+                {:else if form.error}
+                    <p style="text-align: center;color: red;">{form.message}</p>
+                    {loading = false}
+                {/if}
+            {/if} -->
+
+            {#if errorMsg}
+            <p style="text-align: center;color: red;">{errorMsg}</p>
             {/if}
 
-            {#if successMessage}
-                <p style="text-align: center;color: green;">{successMessage}</p>
-            {/if}
+            <form method="POST" action="?/sign_up" use:enhance={() =>{
+                loading = true
+                errorMsg = ""
 
-            <form onsubmit={handle_login}>
+                return async({result, update}) => {
+                    if(result.type === "success"){
+                        loading = false
+                        window.location.href="/chat"
+                    }
+                    else if(result.type === "failure" || result.type === "error"){
+                        loading = false
+                        errorMsg = result.data?.message || "An error occured during registration. Please try again."
+                    }
+                }
+            }}>
                 
                 <div class="username">
-                    <input type="text" id="username" class="text-username" bind:value={username} placeholder="Enter Username...">
+                    <input type="text" id="username" name="username" class="text-username" placeholder="Enter Username...">
                 </div>
 
                 <div class="username">
-                    <input type="text" id="email" class="text-email" bind:value={email} placeholder="Enter Email Address...">
+                    <input type="text" id="email" name="email" class="text-email" placeholder="Enter Email Address...">
                 </div>
 
                 <div class="password">
-                    <input type="password" id="pwd" class="text-password" bind:value={password} placeholder="Enter Password...">
+                    <input type="password" id="pwd" name="password" class="text-password" placeholder="Enter Password...">
                 </div>
 
                 <div class="password">
-                    <input type="password" id="pwd-2" class="text-password" bind:value={confirmPassword} placeholder="Re-enter Password...">
+                    <input type="password" id="pwd-2" name="password_confirm" class="text-password" placeholder="Re-enter Password...">
                 </div>
 
                 <p>
@@ -158,7 +103,7 @@
         align-items: center;
         width: 80%;
     }
-    .login_body{
+    .signup_body{
         width: 100%;
     }
     h2{

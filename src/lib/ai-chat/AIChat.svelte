@@ -1,11 +1,21 @@
 <script>
 	import { tick } from 'svelte';
-	import { AIChatStore } from './ai-chat.svelte.js';
+	import { chatStore } from './ai-chat.svelte.js';
 	import ChatMessage from './ChatMessage.svelte';
 	import Composer from './Composer.svelte';
+	import { onMount } from 'svelte'
+
+	// let chatStore = new AIChatStore()
+
+	// onMount(async ()=>{
+	// 	// await AIChatStore.loadDBMessages()
+	// 	await chatStore.loadDBMessages()
+	// 	console.log("LOADED DB MESSAGES", chatStore.messages)
+	// })
 
 	let {
-		store = new AIChatStore(),
+		// store = new AIChatStore(),
+		store = chatStore,
 		title = 'S.A.M.E',
 		greeting = 'How can I help you today?',
 		suggestions = [
@@ -15,6 +25,8 @@
 			'Summarize the pros and cons of Svelte'
 		]
 	} = $props();
+
+	console.log("AIChat", chatStore)
 
 	/**
      * @type {HTMLDivElement}
@@ -48,12 +60,12 @@
 </script>
 
 <div class="ai-chat">
-	<header>
+	<!-- <header>
 		<h1>{title}</h1>
 		{#if store.messages.length}
 			<button type="button" class="new" onclick={() => store.clear()}>New chat</button>
 		{/if}
-	</header>
+	</header> -->
 
 	<div class="scroller" bind:this={scroller} {onscroll}>
 		<div class="column">
@@ -62,6 +74,7 @@
 					<h2>{greeting}</h2>
 					<ul class="chips">
 						{#each suggestions as suggestion (suggestion)}
+							<!-- <li><button type="button" onclick={() => store.send(suggestion)}>{suggestion}</button></li> -->
 							<li><button type="button" onclick={() => store.send(suggestion)}>{suggestion}</button></li>
 						{/each}
 					</ul>
@@ -97,7 +110,8 @@
 					</svg>
 				</button>
 			{/if}
-			<Composer onsend={(/** @type {any} */ text) => store.send(text)} onstop={() => store.stop()} streaming={store.streaming} />
+			<!-- the textarea (input field) -->
+			<Composer onsend={(/** @type {any} */ text) => store.send(text, [])} onstop={() => store.stop()} streaming={store.streaming} />
 			<p class="note">AI can make mistakes. Check important information.</p>
 		</div>
 	</footer>
