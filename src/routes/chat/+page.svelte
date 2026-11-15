@@ -18,7 +18,7 @@
 		store.clear();
 		store.activeChatId = null;
 		// once the first message has created the chat, show it at /chat/<id> without a reload
-		store.onChatCreated = (id) => goto(`/chat/${id}`, { replaceState: true, keepFocus: true, noScroll: true });
+		// store.onChatCreated = (id) => goto(`/chat/${id}`, { replaceState: true, keepFocus: true, noScroll: true });
 	}
 
 	let { data } = $props()

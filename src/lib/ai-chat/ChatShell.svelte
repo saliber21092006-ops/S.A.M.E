@@ -1,9 +1,10 @@
 <script>
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { apiFetcher } from '#lib/api.js';
 	import { chatStore } from './ai-chat.svelte.js';
 	import Sidebar from './Sidebar.svelte';
+    import { page } from '$app/state';
 
 	// TODO: point this at your real logout endpoint. If your auth cookies are httpOnly the browser
 	// cannot clear them from JS, so the backend has to do it.
@@ -38,6 +39,18 @@
 	let sidebar = $state();
 
 	const hidden = $derived(mobile ? !drawer : collapsed);
+
+	let lastChatId = store.activeChatId;
+	$effect(() => {
+		const id = store.activeChatId;
+		const created = id && !lastChatId;
+		lastChatId = id;
+		if (created && !untrack(() => page.params.id)) {
+			goto(`/chat/${id}`, {replace: true, reset: false}).catch((err) =>
+				console.error('Could not open the new chat page', err)
+			);
+		}
+	});
 
 	onMount(() => {
 		try {

@@ -7,6 +7,7 @@
  */
 
 import { apiFetcher } from "#lib/api.js";
+import { goto } from "$app/navigation";
 // import { _ApiFetcher } from "../../routes/chat/+page";
 
 export class AIChatStore {
@@ -277,7 +278,15 @@ export class AIChatStore {
 				this.activeChatId = await this.#createChat(content)
 				this.loadChats()
 				console.log(this.activeChatId)
-				this.onChatCreated?.(this.activeChatId)
+				if(this.onChatCreated){
+					this.onChatCreated?.(this.activeChatId)
+				}
+				else{
+					console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa")
+					// goto(`/chat/${this.activeChatId}`, {replaceState: true, keepFocus: true, noScroll: true})
+					goto(`/chat/${this.activeChatId}`, {replace: true, reset: false})
+						.catch((err)=> console.error("Could nit open the new chat page", err))
+				}
 			}
 
 			const formData = new FormData()
