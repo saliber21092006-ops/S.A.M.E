@@ -90,6 +90,8 @@
 	}
 
 	async function logout() {
+		if(!confirm("Are you sure you want to logout")) return
+		
 		try {
 			await apiFetcher(LOGOUT_URL, { method: 'POST' });
 		} catch {

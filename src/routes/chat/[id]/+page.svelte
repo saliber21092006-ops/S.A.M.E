@@ -1,5 +1,5 @@
 <script>
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { AIChat, AIChatStore } from '#lib/ai-chat/index.js';
 	import ChatShell from '#lib/ai-chat/ChatShell.svelte';
@@ -19,6 +19,11 @@
 	let loading = $state(!isOpen(page.params.id));
 	let latest = 0; // newest open() call
 	let done = 0; // newest open() call that has finished
+	let chat_title = $state('')
+
+	onMount(async()=>{
+		chat_title = await getChatTitle()
+	})
 
 	async function open(id) {
 		const ticket = ++latest;
@@ -48,10 +53,21 @@
 			else open(id);
 		});
 	});
+
+	async function getChatTitle(){
+		const chat_id = page.params.id
+		const res = await fetch(`http://127.0.0.1:8000/api/chat/${chat_id}/chat/`, {
+			method: 'GET',
+			credentials: 'include'
+		})
+
+		const result = await res.json()
+		return result.title
+	}
 </script>
 
 <svelte:head>
-	<title>S.A.M.E - Assistant</title>
+	<title>S.A.M.E - {chat_title}</title>
 </svelte:head>
 
 <ChatShell {store} user={data.user}>

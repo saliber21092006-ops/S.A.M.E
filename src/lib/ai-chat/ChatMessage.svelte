@@ -19,11 +19,38 @@
 			/* clipboard unavailable */
 		}
 	}
+
+	async function delMessage(msg_id){
+		if(!confirm("Delete this message?")) return
+
+		try{
+			const res = await fetch(`http://127.0.0.1:8000/api/chat/message/${msg_id}/delete/`, {
+				method: 'DELETE',
+				credentials: 'include'
+			})
+
+			let result = await res.json()
+
+			if(!res.ok){
+				console.error(result.message)
+				return
+			}
+
+			alert(`${result.message}`)
+			window.location.reload()
+		}
+		catch(err){
+			throw new Error(`Error while deleting, ${err}`)
+		}
+	}
 </script>
 
 {#if message.role === 'user'}
 	<div class="msg user">
 		<div class="bubble">{message.content}</div>
+		<!-- <div class="actions">
+			<button type="button" aria-label="Delete response">Delete</button>
+		</div> -->
 	</div>
 {:else}
 	<div class="msg assistant">
@@ -41,6 +68,7 @@
 				{#if canRegenerate}
 					<button type="button" onclick={onregenerate} aria-label="Regenerate response">Retry</button>
 				{/if}
+				<button type="button" onclick={()=> delMessage(message.id)} aria-label="Delete response">Delete</button>
 			</div>
 		{/if}
 	</div>
